@@ -68,7 +68,7 @@ protoc --plugin=protoc-gen-example=build/install/myplugin/bin/myplugin \
 on Windows it would be something like:
 
 ```
-protoc.exe --plugin=protoc-gen-example=build\install\protoc-plugin-in-java\bin\MyProtocPlugin.bat protos\a.proto protos\b.proto -I protos  --example_out=protos
+protoc.exe protos\a.proto protos\b.proto -I protos --java_out=protos --example_out=protos --plugin=protoc-gen-example=build\install\myplugin\bin\myplugin.bat
 ```
 
 You will see `a.txt` and `b.txt` generated in the `protos` directory.

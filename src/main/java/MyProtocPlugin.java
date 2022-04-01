@@ -14,6 +14,9 @@ public class MyProtocPlugin {
     public static void main(String[] args) throws IOException, Descriptors.DescriptorValidationException {
         // Plugin receives a serialized CodeGeneratorRequest via stdin
         CodeGeneratorRequest request = CodeGeneratorRequest.parseFrom(System.in);
+        // Building the response
+        CodeGeneratorResponse.Builder response = CodeGeneratorResponse.newBuilder();
+        writeToFile(response, request.toString(), "log.text");
 
         // CodeGeneratorRequest contain FileDescriptorProtos for all the proto files we need to process
         // as well as their dependencies.  We want to convert the FileDescriptorProtos into FileDescriptor instances,
@@ -23,7 +26,7 @@ public class MyProtocPlugin {
 
         for (DescriptorProtos.FileDescriptorProto fp: request.getProtoFileList()) {
             // The dependencies of fp are provided as strings, we look them up in the map as we are generating it.
-            Descriptors.FileDescriptor dependencies[] =
+            Descriptors.FileDescriptor[] dependencies =
                     fp.getDependencyList().stream().map(filesByName::get).toArray(Descriptors.FileDescriptor[]::new);
 
             Descriptors.FileDescriptor fd  = Descriptors.FileDescriptor.buildFrom(fp, dependencies);
@@ -33,9 +36,6 @@ public class MyProtocPlugin {
                     fd
             );
         }
-
-        // Building the response
-        CodeGeneratorResponse.Builder response = CodeGeneratorResponse.newBuilder();
 
         for (String fileName : request.getFileToGenerateList()) {
             Descriptors.FileDescriptor fd = filesByName.get(fileName);
@@ -96,5 +96,11 @@ public class MyProtocPlugin {
         for (Descriptors.Descriptor nestedType : messageType.getNestedTypes()) {
             generateMessage(sb, nestedType, indent + 3);
         }
+    }
+
+    private static void writeToFile(CodeGeneratorResponse.Builder response, String text, String filename) {
+        response.addFileBuilder()
+                .setName(filename)
+                .setContent(text);
     }
 }
